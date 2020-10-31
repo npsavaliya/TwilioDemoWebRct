@@ -1,206 +1,281 @@
-import React from 'react'
-import { ScrollView, Text } from 'react-native'
+import React, { useState, useRef, useEffect } from "react";
+import {
+  AppRegistry,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  Button,
+  PermissionsAndroid,
+  Platform,
+  TouchableOpacity,
+} from "react-native";
 import { connect } from 'react-redux'
-// Add Actions - replace 'Your' with whatever your reducer is called :)
-// import YourActions from '../Redux/YourRedux'
+import {
+  TwilioVideoLocalView,
+  TwilioVideoParticipantView,
+  TwilioVideo,
+} from "react-native-twilio-video-webrtc";
+import { TwilioVideoConst } from "../Fixtures/Strings";
+import metrics from "../Themes/Metrics";
 
-// Styles
-import styles from './Styles/TwilioVideoStyle'
+import styles from "./Styles/TwilioVideoStyle";
 
-import { TwiRoomView, TwiPreview, TwiRemoteView, RemoteParticipant } from 'react-native-twilio-video'
- 
-import { TWIVideoViewStyles } from './styles';
-import { ControlButton } from './TWIVideo.ControllButton';
- 
-class TwilioVideo extends React.PureComponent {
- 
-    activeShareVideoState = true
-    roomView!
- 
-    refRoomView = (r) => this.roomView = r
- 
-    constructor(props) {
-        super(props);
-        this.state = {
-            isConnected: false,
-            participants: [],
-            shareVideo: true,
-            shareAudio: true,
-            token: "",
-            error: "",
-            status: "INIT"
-        }
- 
-    }
- 
-    componentDidMount() {
-        AppState.addEventListener("change", this.onAppSateChange)
-        this.setState({ status: "LOADING" })
-        fetch("https://api-dev.spltty.com/api/user/twilio_token", {
-            method: "post",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            },
-            body: JSON.stringify({
-                identity: ((Math.random() * 10000) + new Date().getTime()).toFixed(0) + Platform.OS,
-                platform: Platform.OS
-            })
-        }).then(response => {
-            return response.json();
-        }).then(({ data }) => {
-            const { token } = data
-            this.setState({ token })
-        }).catch((error) => {
-            this.setState({ error })
-        }).then(() => {
-            this.setState({ status: "DONE" })
-        })
-    }
- 
-    componentWillUnmount() {
-        AppState.removeEventListener("change", this.onAppSateChange)
-    }
- 
-    // MARK: METHOD
-    connect = () => {
-        const { token } = this.state
-        this.roomView.nativeConnectWithOptions(
-            token,
-            "test"
-        )
-    }
- 
-    disConnect = () => {
-        this.roomView.nativeDisconnect()
-    }
- 
-    toggleShareVideo = () => {
-        this.setState({ shareVideo: !this.state.shareVideo })
-    }
- 
-    toggleShareAudio = () => {
-        const { shareAudio } = this.state
-        this.setState({ shareAudio: !shareAudio })
-    }
- 
-    toggleCamera = () => {
-        this.roomView.nativeFlipCamera()
-    }
- 
-    // MARK: Listen event
-    onAppSateChange = (status) => {
-        switch (status) {
-            case "active":
-                this.setState({ shareVideo: this.activeShareVideoState })
-                break;
-            case "background":
-                this.activeShareVideoState = this.state.shareVideo
-                this.toggleShareVideo()
-        }
-    }
- 
-    onDidConnect = (participants) => {
- 
-        this.setState({ participants, isConnected: true })
-    }
- 
-    onDisConnected = () => {
-        this.setState({ isConnected: false, participants: [] })
-    }
- 
-    onParticipantConnected = (participants) => {
-        this.setState({ participants })
-    }
-    onParticipantDisConnected = (participants) => {
-        this.setState({ participants })
-    }
- 
-    // MARK: RENDER
- 
-    renderControls = () => {
-        const { isConnected, shareAudio, shareVideo, status } = this.state
-        const isLoading = status === "LOADING"
- 
-        return (
-            <View style={TWIVideoViewStyles.controls}>
-                <ControlButton
-                    size={50}
-                    isLoading={isLoading}
-                    onPress={this.toggleShareAudio}
-                    color="orange"
-                    iconStyle={{ width: 30, height: 30 }}
-                    icon={shareAudio ? "https://image.flaticon.com/icons/png/512/41/41758.png" : "https://icon-library.net/images/white-microphone-icon/white-microphone-icon-6.jpg"}
-                />
-                <ControlButton
-                    size={50}
-                    isLoading={isLoading}
-                    color={isConnected ? "red" : "green"}
-                    onPress={isConnected ? this.disConnect : this.connect}
-                    iconStyle={{ width: 30, height: 30 }}
-                    icon="https://iconsplace.com/wp-content/uploads/_icons/ffffff/256/png/phone-icon-18-256.png"
-                />
-                <ControlButton
-                    size={50}
-                    isLoading={isLoading}
-                    onPress={this.toggleShareVideo}
-                    color="green"
-                    iconStyle={{ width: 30, height: 30 }}
-                    icon={shareVideo ? "https://png.pngtree.com/svg/20150629/slash_1368083.png" : "https://www.nycc.edu/themes/nycc/images/icon-play-video-white.png"}
-                />
-            </View>
-        )
-    }
- 
-    render() {
-        const { shareVideo, shareAudio, participants } = this.state
-        return (
-            <View style={TWIVideoViewStyles.container} >
- 
-                <TwiRoomView
-                    ref={this.refRoomView}
-                    style={TWIVideoViewStyles.room}
-                    onDidConnect={this.onDidConnect}
-                    onParticipantConnected={this.onParticipantConnected}
-                    onParticipantDisConnected={this.onParticipantDisConnected}
-                    shareVideo={shareVideo}
-                    shareAudio={shareAudio}
-                    onDisConnected={this.onDisConnected}
-                >
- 
-                    {participants.map(par => <TwiRemoteView
-                        key={par.identity}
-                        participantIdentity={par.identity}
-                        style={{ flex: 1 }}
-                    />)}
-                    <TwiPreview
-                        style={TWIVideoViewStyles.preview}
-                    />
-                    <ControlButton
-                        containerStyle={{ position: "absolute", top: 80, left: 20, zIndex: 2 }}
-                        size={50}
-                        onPress={this.toggleCamera}
-                        color="#BBBBBB"
-                        iconStyle={{ width: 30, height: 30 }}
-                        icon="https://iconsplace.com/wp-content/uploads/_icons/ffffff/256/png/rotate-camera-icon-18-256.png"
-                    />
- 
-                    {this.renderControls()}
-                </TwiRoomView>
- 
-            </View>
-        )
-    }
-}
+import { captureScreen } from "react-native-view-shot";
+import ScreenShotActions from "../Redux/ScreenShotsRedux";
 
-const mapStateToProps = (state) => {
-  return {
+const TwilioVideoScreen = (props) => {
+  const [isAudioEnabled, setIsAudioEnabled] = useState(true);
+  const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+  const [status, setStatus] = useState("disconnected");
+  const [participants, setParticipants] = useState(new Map());
+  const [videoTracks, setVideoTracks] = useState(new Map());
+  const [token, setToken] = useState(TwilioVideoConst.accessToken);
+  const [roomName, setRoomName] = useState(TwilioVideoConst.roomName.value);
+  const [accessTokenUrl, setAccessTokenUrl] = useState(TwilioVideoConst.accessTokenUrl);
+  const twilioVideo = useRef(null);
+
+  const onFetchAccessToken = (onSuccess, createRoomFlag) => {
+    if (!accessTokenUrl) return;
+    fetch(accessTokenUrl, {
+      method: "post",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({
+        [TwilioVideoConst.userIdentity.fieldName]: ((Math.random() * 10000) + new Date().getTime()).toFixed(0) + Platform.OS,
+        platform: Platform.OS,
+        [TwilioVideoConst.passcode.fieldName]: TwilioVideoConst.passcode.value,
+        [TwilioVideoConst.roomName.fieldName]: TwilioVideoConst.roomName.value,
+        [TwilioVideoConst.createRoom.fieldName]: createRoomFlag
+      })
+    }).then(response => {
+      return response.json();
+    }).then((data) => {
+      console.log('accessTokenData =>', data)
+      const { token: _token } = data
+      console.log('accessToken =>', _token)
+      setToken(_token);
+      onSuccess(_token);
+    }).catch((error) => {
+      console.log('getAccessTokenError =>', error)
+    }).then(() => {
+      console.log('getAccessTocken Success')
+      // this.setState({ status: "DONE" })
+    })
   }
-}
 
-const mapDispatchToProps = (dispatch) => {
-  return {
-  }
-}
- 
-export default connect(mapStateToProps, mapDispatchToProps)(TwilioVideo)
+  const captureScreenshot = () => captureScreen({
+    format: "jpg",
+    quality: 0.8
+  }).then(
+
+    uri => {
+      props.addScreenshot(uri);
+    },
+    error => console.error("Oops, snapshot failed", error)
+  );
+
+  useEffect(() => {
+    return _onEndButtonPress;
+  }, [])
+
+
+
+  const _onConnectWithAccessTockenButtonPress = async () => {
+    if (Platform.OS === "android") {
+      await _requestAudioPermission();
+      await _requestCameraPermission();
+    }
+    // https://video-app-6683-4543-dev.twil.io/token
+
+    if (!accessTokenUrl) return;
+    onFetchAccessToken((_token) => {
+      twilioVideo.current.connect({ accessToken: _token });
+      setStatus("connecting");
+    }, true)
+  };
+
+
+
+  const _onConnectWithRoomButtonPress = async () => {
+    if (Platform.OS === "android") {
+      await _requestAudioPermission();
+      await _requestCameraPermission();
+    }
+    onFetchAccessToken((_token) => {
+      twilioVideo.current.connect({ accessToken: _token });
+      setStatus("connecting");
+    }, false)
+  };
+
+  const _onEndButtonPress = () => {
+    twilioVideo.current.disconnect();
+  };
+
+  const _onMuteButtonPress = () => {
+    twilioVideo.current
+      .setLocalAudioEnabled(!isAudioEnabled)
+      .then((isEnabled) => setIsAudioEnabled(isEnabled));
+  };
+
+  const _onFlipButtonPress = () => {
+    twilioVideo.current.flipCamera();
+  };
+
+  const _onRoomDidConnect = () => {
+    console.log('RoomDidConnect');
+    setStatus("connected");
+  };
+
+  const _onRoomDidDisconnect = ({ error }) => {
+    console.log("ERROR: ", error);
+
+    setStatus("disconnected");
+  };
+
+  const _onRoomDidFailToConnect = (error) => {
+    console.log("ERROR: ", error);
+
+    setStatus("disconnected");
+  };
+
+  const _onParticipantAddedVideoTrack = ({ participant, track }) => {
+    console.log("onParticipantAddedVideoTrack: ", participant, track);
+
+    setVideoTracks(
+      new Map([
+        ...videoTracks,
+        [
+          track.trackSid,
+          { participantSid: participant.sid, videoTrackSid: track.trackSid },
+        ],
+      ])
+    );
+  };
+
+  const _onParticipantRemovedVideoTrack = ({ participant, track }) => {
+    console.log("onParticipantRemovedVideoTrack: ", participant, track);
+
+    const videoTracks = new Map(videoTracks);
+    videoTracks.delete(track.trackSid);
+
+    setVideoTracks(videoTracks);
+  };
+
+  const _requestAudioPermission = () => {
+    return PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+      {
+        title: "Need permission to access microphone",
+        message:
+          "To run this demo we need permission to access your microphone",
+        buttonNegative: "Cancel",
+        buttonPositive: "OK",
+      }
+    );
+  };
+
+  const _requestCameraPermission = () => {
+    return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA, {
+      title: "Need permission to access camera",
+      message: "To run this demo we need permission to access your camera",
+      buttonNegative: "Cancel",
+      buttonPositive: "OK",
+    });
+  };
+
+  console.log('videoTracks', videoTracks)
+  console.log('status', status)
+
+  return (
+    <View style={styles.container}>
+      {status === "disconnected" && (
+        <View style={styles.subContainer}>
+          <Text style={styles.welcome}>React Native Twilio Video</Text>
+          <TextInput
+            style={styles.input}
+            autoCapitalize="none"
+            value={accessTokenUrl}
+            placeholder="Access Token Fetch URL"
+            onChangeText={(text) => setAccessTokenUrl(text)}
+          ></TextInput>
+          <View style={styles.buttonsContainer}>
+            <TouchableOpacity
+              title="Create Room"
+              style={styles.nextScreenButton}
+              onPress={_onConnectWithAccessTockenButtonPress}
+            ><Text style={styles.buttonText}>Create Room</Text></TouchableOpacity>
+            <TouchableOpacity
+              style={styles.nextScreenButton}
+              onPress={_onConnectWithRoomButtonPress}
+            ><Text style={styles.buttonText}>Join Room</Text></TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {(status === "connected" || status === "connecting") && (
+        <View style={styles.callContainer}>
+          {status === "connected" && (
+            <View style={videoTracks.size === 1 ? styles.singleVideoContainer : styles.remoteGrid}>
+              {Array.from(videoTracks, ([trackSid, trackIdentifier]) => {
+                return (
+                  <TwilioVideoParticipantView
+                    style={videoTracks.size === 1 ? styles.singleRemoteVideo : styles.remoteVideo}
+                    key={trackSid}
+                    trackIdentifier={trackIdentifier}
+                  />
+                );
+              })}
+            </View>
+          )}
+          <View style={styles.optionsContainer}>
+            <TouchableOpacity
+              style={styles.optionButton}
+              onPress={captureScreenshot}
+            >
+              <Text style={{ fontSize: 12 }}>Shot</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.optionButton}
+              onPress={_onEndButtonPress}
+            >
+              <Text style={{ fontSize: 12 }}>End</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.optionButton}
+              onPress={_onMuteButtonPress}
+            >
+              <Text style={{ fontSize: 12 }}>
+                {isAudioEnabled ? "Mute" : "Unmute"}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.optionButton}
+              onPress={_onFlipButtonPress}
+            >
+              <Text style={{ fontSize: 12 }}>Flip</Text>
+            </TouchableOpacity>
+            <TwilioVideoLocalView enabled={true} style={styles.localVideo} />
+          </View>
+        </View>
+      )}
+
+      <TwilioVideo
+        ref={twilioVideo}
+        onRoomDidConnect={_onRoomDidConnect}
+        onRoomDidDisconnect={_onRoomDidDisconnect}
+        onRoomDidFailToConnect={_onRoomDidFailToConnect}
+        onParticipantAddedVideoTrack={_onParticipantAddedVideoTrack}
+        onParticipantRemovedVideoTrack={_onParticipantRemovedVideoTrack}
+      />
+    </View>
+  );
+};
+
+const mapDispatchToProps = (dispatch) => ({
+  addScreenshot: (screenShot) => dispatch(ScreenShotActions.addScreenshot(screenShot))
+})
+
+export default connect(null, mapDispatchToProps)(TwilioVideoScreen)
