@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "2D02E47A1E0B4A5D006451C7"
-               BuildableName = "PracticalTwo-tvOS.app"
-               BlueprintName = "PracticalTwo-tvOS"
-               ReferencedContainer = "container:PracticalTwo.xcodeproj">
+               BuildableName = "TwilioDemo-tvOS.app"
+               BlueprintName = "TwilioDemo-tvOS"
+               ReferencedContainer = "container:TwilioDemo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "2D02E48F1E0B4A5D006451C7"
-               BuildableName = "PracticalTwo-tvOSTests.xctest"
-               BlueprintName = "PracticalTwo-tvOSTests"
-               ReferencedContainer = "container:PracticalTwo.xcodeproj">
+               BuildableName = "TwilioDemo-tvOSTests.xctest"
+               BlueprintName = "TwilioDemo-tvOSTests"
+               ReferencedContainer = "container:TwilioDemo.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2D02E47A1E0B4A5D006451C7"
-            BuildableName = "PracticalTwo-tvOS.app"
-            BlueprintName = "PracticalTwo-tvOS"
-            ReferencedContainer = "container:PracticalTwo.xcodeproj">
+            BuildableName = "TwilioDemo-tvOS.app"
+            BlueprintName = "TwilioDemo-tvOS"
+            ReferencedContainer = "container:TwilioDemo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2D02E47A1E0B4A5D006451C7"
-            BuildableName = "PracticalTwo-tvOS.app"
-            BlueprintName = "PracticalTwo-tvOS"
-            ReferencedContainer = "container:PracticalTwo.xcodeproj">
+            BuildableName = "TwilioDemo-tvOS.app"
+            BlueprintName = "TwilioDemo-tvOS"
+            ReferencedContainer = "container:TwilioDemo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
